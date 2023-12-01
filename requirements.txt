@@ -1,0 +1,5 @@
+dnspython
+requests
+beautifulsoup4
+colorama
+tqdm
