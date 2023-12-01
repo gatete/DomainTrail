@@ -18,7 +18,16 @@ from tqdm import tqdm
 
 print_lock = threading.Lock()
 
+def banner():
+    banner = '''
+    ┳┓       •  ┏┳┓    •┓
+    ┃┃┏┓┏┳┓┏┓┓┏┓ ┃ ┏┓┏┓┓┃
+    ┻┛┗┛┛┗┗┗┻┗┛┗ ┻ ┛ ┗┻┗┗ v1.0
+    '''
+    print(banner)
+
 def main():
+    banner()
     init(autoreset=True)
     parser = argparse.ArgumentParser(description="Subdomain enumeration script.")
     parser.add_argument("-d", "--domain", help="Specify the domain to enumerate subdomains.", required=True)
@@ -431,7 +440,6 @@ def enumerate_from_wordlist(domain, wordlist_path, num_threads):
                 found_subdomains.add(subdomain.lower())
 
     return found_subdomains
-
 
 if __name__ == "__main__":
     main()
