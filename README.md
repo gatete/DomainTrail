@@ -6,13 +6,16 @@ DomainTrail is a fast subdomain enumeration tool designed to identify subdomains
 
 ## Usage
 
-DomainTrail.py -d DOMAIN [OPTIONS]
+DomainTrail can be used in two modes: Single domain enumeration or multiple domain enumeration from a list.
+
+DomainTrail.py <-d DOMAIN | -l LIST> [OPTIONS]
 
 ```
 -d --domain <domain>         Specify the target domain.
+-l --list                    Specify a list of target domains.
 -p --passive                 Use only passive enumeration methods.
 -w --wordlist <wordlist>     Path to a custom wordlist for subdomain brute-forcing.
--t --threads <number>        Number of threads for DNS bruteforcing (defaults to 10).
+-t --threads <number>        Number of threads for DNS bruteforcing (defaults to 200).
 -o --output <output>         Output file to save the found subdomains.
 ```
 
@@ -25,12 +28,12 @@ python3 DomainTrail.py -d example.com
 
 - Enumerate subdomains for example.com using both passive and active techniques with a custom wordlist and number of threads.
 ```
-python3 DomainTrail.py -d example.com -w wordlist.txt -t 10
+python3 DomainTrail.py -d example.com -w wordlist.txt -t 300
 ```
 
-- Enumerate subdomains for example.com using only passive techniques and write the output to a file.
+- Enumerate subdomains for domains from a file using only passive techniques and write the output to a file.
 ```
-python3 DomainTrail.py -d example.com -p -o example_subdomains.txt
+python3 DomainTrail.py -l domains.txt -p -o example_subdomains.txt
 ```
 
 ## Setup

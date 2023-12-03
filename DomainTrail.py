@@ -22,7 +22,7 @@ def banner():
     banner = '''
     ┳┓       •  ┏┳┓    •┓
     ┃┃┏┓┏┳┓┏┓┓┏┓ ┃ ┏┓┏┓┓┃
-    ┻┛┗┛┛┗┗┗┻┗┛┗ ┻ ┛ ┗┻┗┗ v1.0
+    ┻┛┗┛┛┗┗┗┻┗┛┗ ┻ ┛ ┗┻┗┗ v1.1.0
     '''
     print(banner)
 
@@ -30,36 +30,56 @@ def main():
     banner()
     init(autoreset=True)
     parser = argparse.ArgumentParser(description="Subdomain enumeration script.")
-    parser.add_argument("-d", "--domain", help="Specify the domain to enumerate subdomains.", required=True)
+    parser.add_argument("-d", "--domain", help="Specify the domain to enumerate subdomains.")
+    parser.add_argument("-l", "--list", help="Specify a file with a list of domains to enumerate subdomains.", type=str)
     parser.add_argument("-p", "--passive", action="store_true", help="Use only passive enumeration methods.")
     parser.add_argument("-o", "--output", help="Output file to save the found subdomains.", type=str)
     parser.add_argument("-w", "--wordlist", help="Specify a wordlist for subdomain brute-forcing.", required=False)
-    parser.add_argument("-t", "--threads", help="Number of threads for brute-forcing subdomains (defaults to 10)", type=int, default=300)
+    parser.add_argument("-t", "--threads", help="Number of threads for brute-forcing subdomains (defaults to 200)", type=int, default=200)
     args = parser.parse_args()
-    wordlist_path = args.wordlist if args.wordlist else None
 
-    if not validate_domain(args.domain):
-        print(Fore.RED + "✖ Invalid domain format. Please use domain.tld format.")
+    if args.domain is None and args.list is None:
+        print(Fore.RED + "Error: Either a domain (-d) or a list of domains (-l) must be specified.")
+    
+    if args.domain and args.list:
+        print(Fore.RED + "Error: Please specify either a single domain (-d) or a list of domains (-l), but not both.")
         sys.exit(1)
 
-    if not args.passive:
-        print(Fore.YELLOW + Style.BRIGHT + "\nActive methods will be used, which may be detected.")
-        response = input(Fore.YELLOW + Style.BRIGHT + "Press Enter to continue or any other key to cancel.")
-        if response:
-            print(Fore.YELLOW + "➜ Operation cancelled.")
-            sys.exit(0)
+    domains = [args.domain] if args.domain else []
 
-    found_subdomains = enumerate_subdomains(args.domain, args.passive, args.wordlist, args.threads)
-    valid_subdomains = {subdomain for subdomain in set(found_subdomains) if validate_subdomain(subdomain, args.domain)}
+    if args.list:
+        try:
+            with open(args.list, 'r') as file:
+                domains.extend(file.read().splitlines())
+        except FileNotFoundError:
+            print(Fore.RED + f"Error: Domain list file not found: {args.list}")
+            sys.exit(1)
 
-    if args.output:
-        with open(args.output, "w") as file:
-            for subdomain in sorted(valid_subdomains):
-                file.write(subdomain + "\n")
-    else:
-        print(Fore.GREEN + f"\n✔ Found {len(valid_subdomains)} unique valid subdomains.\n")
-        for subdomain in sorted(valid_subdomains):   
-            print(Fore.CYAN + f"{subdomain}")
+    for domain in domains:
+        if not validate_domain(domain):
+            print(Fore.RED + f"Invalid domain format: {domain}. Please use domain.tld format.")
+            continue
+
+        found_subdomains = enumerate_subdomains(domain, args.passive, args.wordlist, args.threads)
+        valid_subdomains = {subdomain for subdomain in set(found_subdomains) if validate_subdomain(subdomain, domain)}
+
+        if args.output:
+            with open(args.output, "a") as file:
+                file.write(f"\n➜ Subdomains for {domain}\n\n")
+                for subdomain in sorted(valid_subdomains):
+                    file.write(subdomain + "\n")
+        else:
+            print(Fore.GREEN + f"\n✔ Found {len(valid_subdomains)} unique valid subdomains for {domain}.\n")
+            for subdomain in sorted(valid_subdomains):   
+                print(Fore.CYAN + f"{subdomain}")
+
+def load_domains_from_file(filename):
+    try:
+        with open(filename, "r") as file:
+            return [line.strip() for line in file if line.strip()]
+    except FileNotFoundError:
+        print(Fore.RED + f"✖ File not found: {filename}")
+        sys.exit(1)
 
 def validate_domain(domain):
     pattern = r"^(?!\-)([A-Za-z0-9\-]{1,63}(?<!\-)\.?)+[A-Za-z]{2,6}$"
@@ -70,7 +90,7 @@ def validate_subdomain(subdomain, domain):
         return False    
     return subdomain.endswith(domain)
 
-def enumerate_subdomains(domain, use_passive, wordlist=None, num_threads=10):
+def enumerate_subdomains(domain, use_passive, wordlist=None, num_threads=200):
     print(Fore.BLUE + f"\nℹ Enumerating subdomains for {domain} using {'passive' if use_passive else 'active and passive'} methods\n")
 
     tasks = [t_crt, t_rapiddns, t_dnsdumpster, t_waybackmachine, t_anubis, t_subdomaincenter, t_otx, t_urlscan]
@@ -125,7 +145,7 @@ def t_zonetransfer(domain):
         print(Fore.YELLOW + f"⚠ Zone transfer request refused for domain {domain}")
 
     if zone_transfer_successful:
-        print(Fore.GREEN + f"\n✔ Zone transfer was successful.\n")
+        print(Fore.GREEN + f"✔ Zone transfer was successful.")
 
     return list(set(found_subdomains))
 
