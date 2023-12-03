@@ -1,4 +1,4 @@
-# DomainTrail
+![DomainTrail](https://github.com/gatete/DomainTrail/blob/main/img/domaintrail_logo.png)
 
 ## Description
 
