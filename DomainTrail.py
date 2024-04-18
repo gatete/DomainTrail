@@ -22,7 +22,7 @@ def banner():
     banner = '''
     ┳┓       •  ┏┳┓    •┓
     ┃┃┏┓┏┳┓┏┓┓┏┓ ┃ ┏┓┏┓┓┃
-    ┻┛┗┛┛┗┗┗┻┗┛┗ ┻ ┛ ┗┻┗┗ v1.1.0
+    ┻┛┗┛┛┗┗┗┻┗┛┗ ┻ ┛ ┗┻┗┗ v1.1.1
     '''
     print(banner)
 
@@ -275,7 +275,7 @@ def t_waybackmachine(domain):
 
 def t_anubis(domain):
     found_subdomains = []
-    url = f"https://jonlu.ca/anubis/subdomains/{domain}"
+    url = f"https://jldc.me/anubis/subdomains/{domain}"
     user_agent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:59.0) Gecko/20100101 Firefox/59.0"
     headers = {"User-Agent": user_agent, "Referer": "https://jonlu.ca"}
     with print_lock:
@@ -287,6 +287,9 @@ def t_anubis(domain):
             subdomains = json.loads(response.text)
             for subdomain in subdomains:
                 found_subdomains.append(subdomain)
+        elif response.status_code == 300:
+            with print_lock:
+                print(Fore.RED + f"✖ Domain doesn't exist in AnubisDB")
         else:
             with print_lock:
                 print(Fore.RED + f"✖ Request to Anubis failed with status code: {response.status_code}")
